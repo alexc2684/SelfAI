@@ -1,37 +1,37 @@
-from keras.models import Model
-from keras.layers import Input, LSTM, Dense, Embedding
-import numpy as np
+#!/usr/bin/env python
+"""
+    Main training workflow
+"""
+from __future__ import division
 
-AI_NAME = 'Alex Chan'
-E_IN_DIR = 'encoder_input.npy'
-D_IN_DIR = 'decoder_input.npy'
-VOCAB_SIZE = 6000
-LATENT_DIM = 256
-BATCH_SIZE = 64
-EPOCHS = 5
-MAX_Q = 30
+import argparse
 
-#load data
-encoder_in = np.load(E_IN_DIR)
-decoder_in = np.load(D_IN_DIR)
-NUM_SAMPLES = len(encoder_in)
-decoder_out = np.zeros([NUM_SAMPLES, MAX_Q, VOCAB_SIZE], dtype=np.int32)
-decoder_out[0:decoder_out.shape[0]-1] = decoder_in[1:]
+import onmt.opts as opts
+from onmt.train_multi import main as multi_main
+from onmt.train_single import main as single_main
 
-#define encoder
-encoder_inputs = Input(shape=(None,))
-x = Embedding(VOCAB_SIZE, LATENT_DIM)(encoder_inputs)
-x, hidden_h, hidden_c = LSTM(LATENT_DIM, return_state=True)(x)
-encoder_states = [hidden_h, hidden_c]
 
-#define decoder
-decoder_inputs = Input(shape=(None,))
-x = Embedding(VOCAB_SIZE, LATENT_DIM)(decoder_inputs)
-x, _, _ = LSTM(LATENT_DIM, return_state=True)(x, initial_state=encoder_states)
-decoder_outputs = Dense(VOCAB_SIZE, activation='softmax')(x)
+def main(opt):
+    if opt.rnn_type == "SRU" and not opt.gpuid:
+        raise AssertionError("Using SRU requires -gpuid set.")
 
-model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+    if opt.epochs:
+        raise AssertionError("-epochs is deprecated please use -train_steps.")
 
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-model.fit([encoder_in, decoder_in], decoder_out, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=.2)
-model.save("model_0.h5")
+    if len(opt.gpuid) > 1:
+        multi_main(opt)
+    else:
+        single_main(opt)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='train.py',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    opts.add_md_help_argument(parser)
+    opts.model_opts(parser)
+    opts.train_opts(parser)
+
+    opt = parser.parse_args()
+    main(opt)
