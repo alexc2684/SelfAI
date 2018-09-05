@@ -5,9 +5,11 @@ Using my Facebook message data to make a generative deep learning model to talk 
 ## Usage
 1. To preprocess the input data, separate "contexts" and "responses" to respective .txt files
 for training and test data.
+
 ```python preprocess.py -train_src data/src-train.txt -train_tgt data/tgt-train.txt -valid_src data/src-val.txt -valid_tgt data/tgt-val.txt -save_data data/model```
 
 2. To train the model, run this command. Further details on training parameters are in the [OpenNMT](https://github.com/OpenNMT/OpenNMT-py) documentation.
+
 ```python train.py -data data/model -dropout .2 -global_attention mlp -start_decay_steps 8 -tensorboard -tensorboard_log_dir self_v1 -save_model checkpoints/model_v1 -src_word_vec_size 256 -tgt_word_vec_size 256 -rnn_size 256```
 
 3. Test out the model on test data! Adjust beam size to see next highest probable text sequences.
