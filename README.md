@@ -11,6 +11,7 @@ for training and test data.
 ```python train.py -data data/model -dropout .2 -global_attention mlp -start_decay_steps 8 -tensorboard -tensorboard_log_dir self_v1 -save_model checkpoints/model_v1 -src_word_vec_size 256 -tgt_word_vec_size 256 -rnn_size 256```
 
 3. Test out the model on test data! Adjust beam size to see next highest probable text sequences.
+
 ```python translate.py -model checkpoints/model_v1_step_<STEP_SIZE>.pt -src data/src-val.txt -beam_size 3 -replace_unk -verbose```
 
 ## Examples
